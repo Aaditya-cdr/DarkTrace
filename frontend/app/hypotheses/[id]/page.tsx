@@ -1,9 +1,90 @@
 import Link from "next/link";
-import ConfidenceCard from "@/components/hypotheses/confidence-card";
-import EvidenceCard from "@/components/hypotheses/evidence-card";
-import ContradictionCard from "@/components/hypotheses/contradiction-card";
-import InvestigationGap from "@/components/hypotheses/investigation-gap";
-import NextBestEvidence from "@/components/hypotheses/next-best-evidence";
+type EvidenceCardProps = {
+  title: string;
+  type: string;
+  description: string;
+  strength: string;
+  source: string;
+};
+
+function EvidenceCard({
+  title,
+  type,
+  description,
+  strength,
+  source,
+}: EvidenceCardProps) {
+  return (
+    <article className="evidence-card">
+      <div className="evidence-card-header">
+        <span className="evidence-type">{type}</span>
+        <span className="evidence-strength">{strength}</span>
+      </div>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      <span className="evidence-source">Source: {source}</span>
+    </article>
+  );
+}
+
+type ContradictionCardProps = {
+  title: string;
+  description: string;
+  severity: string;
+  source: string;
+};
+
+function ContradictionCard({
+  title,
+  description,
+  severity,
+  source,
+}: ContradictionCardProps) {
+  return (
+    <article className="evidence-card contradiction-card">
+      <div className="evidence-card-header">
+        <span className="evidence-type">CONTRADICTION</span>
+        <span className="evidence-strength">{severity}</span>
+      </div>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      <span className="evidence-source">Source: {source}</span>
+    </article>
+  );
+}
+
+function InvestigationGap() {
+  return (
+    <div className="investigation-gap">
+      <h3>Resolve the remaining gaps</h3>
+      <p>Seek independent corroboration for the contradictory signals.</p>
+    </div>
+  );
+}
+
+function NextBestEvidence() {
+  return (
+    <div className="next-best-evidence">
+      <h3>Next best evidence</h3>
+      <p>Compare additional infrastructure and activity records.</p>
+    </div>
+  );
+}
+
+function ConfidenceCard() {
+  return (
+    <section className="confidence-card" aria-label="Hypothesis confidence">
+      <div>
+        <p className="section-eyebrow">CONFIDENCE</p>
+        <h2>Medium confidence</h2>
+      </div>
+      <p>
+        The available evidence supports this hypothesis, but contradictory
+        signals and limited corroboration prevent a high-confidence assessment.
+      </p>
+    </section>
+  );
+}
 
 export default async function HypothesisPage({
   params,

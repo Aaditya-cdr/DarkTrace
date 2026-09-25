@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: darktrace-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: darktrace
+      POSTGRES_USER: darktrace
+      POSTGRES_PASSWORD: darktrace
+    ports:
+      - "5432:5432"
+    volumes:
+      - darktrace_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  darktrace_postgres_data:

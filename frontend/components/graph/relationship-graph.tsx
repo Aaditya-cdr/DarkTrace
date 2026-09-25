@@ -254,7 +254,7 @@ export default function RelationshipGraph() {
             color: "#94a3b8",
             "text-background-color": "#ffffff",
             "text-background-opacity": 0.9,
-            "text-background-padding": 2,
+            "text-background-padding": "2px",
           },
         },
 
