@@ -1,90 +1,310 @@
 import Link from "next/link";
-type EvidenceCardProps = {
-  title: string;
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://127.0.0.1:8000";
+
+type Evidence = {
+  id: string;
   type: string;
-  description: string;
+  category: string;
+  subject_a: string;
+  subject_b: string;
+  direction: "SUPPORTING" | "CONTRADICTORY";
   strength: string;
   source: string;
+  observed_at?: string;
+  reliability?: number;
+  independence?: number;
+  specificity?: number;
+  temporal_relevance?: number;
+  analytical_score?: number;
+};
+
+type Hypothesis = {
+  id: string;
+  status: string;
+  persona_a: string;
+  persona_b: string;
+  title: string;
+  assessment: string;
+  evidence_ids: string[];
+  investigation_status: string;
+};
+
+type Analysis = {
+  assessment: string;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+
+  supporting_score: number;
+  contradictory_score: number;
+  net_score: number;
+
+  supporting_evidence: Evidence[];
+  contradictory_evidence: Evidence[];
+
+  explanation: string;
+  investigation_gap: string;
+  next_best_evidence: string;
+
+  analytical_note: string;
+};
+
+type HypothesisResponse = {
+  hypothesis: Hypothesis;
+  analysis: Analysis;
+};
+
+
+/*
+ * ---------------------------------------------------------
+ * Evidence helpers
+ * ---------------------------------------------------------
+ */
+
+function getEvidenceTitle(type: string) {
+  const titles: Record<string, string> = {
+    SHARED_PGP: "Shared PGP",
+    BEHAVIOURAL_SIMILARITY: "Behavioural Similarity",
+    SEMANTIC_SIMILARITY: "Semantic Writing Similarity",
+    ACTIVITY_OVERLAP: "Activity Overlap",
+    INFRASTRUCTURE_MISMATCH: "Infrastructure Mismatch",
+    TEMPORAL_GAP: "Temporal Gap",
+    INFRASTRUCTURE_CONTINUITY:
+      "Infrastructure Continuity",
+    IDENTIFIER_CONFLICT: "Identifier Conflict",
+  };
+
+  return titles[type] || type.replaceAll("_", " ");
+}
+
+
+function getEvidenceDescription(
+  evidence: Evidence
+) {
+  switch (evidence.type) {
+    case "SHARED_PGP":
+      return "Both personas are associated with the same PGP identifier.";
+
+    case "BEHAVIOURAL_SIMILARITY":
+      return "Observed activity patterns show meaningful behavioural overlap.";
+
+    case "SEMANTIC_SIMILARITY":
+      return "Writing samples show semantic similarities across observed communications.";
+
+    case "ACTIVITY_OVERLAP":
+      return "Several activity windows overlap within the observed timeline.";
+
+    case "INFRASTRUCTURE_MISMATCH":
+      return "The personas are associated with different infrastructure nodes.";
+
+    case "TEMPORAL_GAP":
+      return "Observed activity contains a period where expected continuity is not present.";
+
+    case "INFRASTRUCTURE_CONTINUITY":
+      return "The personas share a consistent infrastructure relationship across the observed records.";
+
+    case "IDENTIFIER_CONFLICT":
+      return "Observed identifiers conflict with the proposed relationship.";
+
+    default:
+      return "Evidence signal identified in the synthetic investigation dataset.";
+  }
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Evidence Card
+ * ---------------------------------------------------------
+ */
+
+type EvidenceCardProps = {
+  evidence: Evidence;
 };
 
 function EvidenceCard({
-  title,
-  type,
-  description,
-  strength,
-  source,
+  evidence,
 }: EvidenceCardProps) {
   return (
     <article className="evidence-card">
+
       <div className="evidence-card-header">
-        <span className="evidence-type">{type}</span>
-        <span className="evidence-strength">{strength}</span>
+
+        <span className="evidence-type">
+          {evidence.category}
+        </span>
+
+        <span className="evidence-strength">
+          {evidence.strength}
+        </span>
+
       </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <span className="evidence-source">Source: {source}</span>
+
+      <h3>
+        {getEvidenceTitle(evidence.type)}
+      </h3>
+
+      <p>
+        {getEvidenceDescription(evidence)}
+      </p>
+
+      <span className="evidence-source">
+        Source: {evidence.source}
+      </span>
+
     </article>
   );
 }
 
+
+/*
+ * ---------------------------------------------------------
+ * Contradiction Card
+ * ---------------------------------------------------------
+ */
+
 type ContradictionCardProps = {
-  title: string;
-  description: string;
-  severity: string;
-  source: string;
+  evidence: Evidence;
 };
 
 function ContradictionCard({
-  title,
-  description,
-  severity,
-  source,
+  evidence,
 }: ContradictionCardProps) {
   return (
     <article className="evidence-card contradiction-card">
+
       <div className="evidence-card-header">
-        <span className="evidence-type">CONTRADICTION</span>
-        <span className="evidence-strength">{severity}</span>
+
+        <span className="evidence-type">
+          CONTRADICTION
+        </span>
+
+        <span className="evidence-strength">
+          {evidence.strength}
+        </span>
+
       </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <span className="evidence-source">Source: {source}</span>
+
+      <h3>
+        {getEvidenceTitle(evidence.type)}
+      </h3>
+
+      <p>
+        {getEvidenceDescription(evidence)}
+      </p>
+
+      <span className="evidence-source">
+        Source: {evidence.source}
+      </span>
+
     </article>
   );
 }
 
-function InvestigationGap() {
+
+/*
+ * ---------------------------------------------------------
+ * Investigation Gap
+ * ---------------------------------------------------------
+ */
+
+function InvestigationGap({
+  text,
+}: {
+  text: string;
+}) {
   return (
     <div className="investigation-gap">
-      <h3>Resolve the remaining gaps</h3>
-      <p>Seek independent corroboration for the contradictory signals.</p>
+
+      <h3>
+        Resolve the remaining gaps
+      </h3>
+
+      <p>
+        {text}
+      </p>
+
     </div>
   );
 }
 
-function NextBestEvidence() {
+
+/*
+ * ---------------------------------------------------------
+ * Next Best Evidence
+ * ---------------------------------------------------------
+ */
+
+function NextBestEvidence({
+  text,
+}: {
+  text: string;
+}) {
   return (
     <div className="next-best-evidence">
-      <h3>Next best evidence</h3>
-      <p>Compare additional infrastructure and activity records.</p>
+
+      <h3>
+        Next best evidence
+      </h3>
+
+      <p>
+        {text}
+      </p>
+
     </div>
   );
 }
 
-function ConfidenceCard() {
+
+/*
+ * ---------------------------------------------------------
+ * Confidence Card
+ * ---------------------------------------------------------
+ */
+
+function ConfidenceCard({
+  confidence,
+  explanation,
+}: {
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+  explanation: string;
+}) {
   return (
-    <section className="confidence-card" aria-label="Hypothesis confidence">
+    <section
+      className="confidence-card"
+      aria-label="Hypothesis confidence"
+    >
+
       <div>
-        <p className="section-eyebrow">CONFIDENCE</p>
-        <h2>Medium confidence</h2>
+
+        <p className="section-eyebrow">
+          CONFIDENCE
+        </p>
+
+        <h2>
+          {confidence.charAt(0) +
+            confidence.slice(1).toLowerCase()}
+          {" "}
+          confidence
+        </h2>
+
       </div>
+
       <p>
-        The available evidence supports this hypothesis, but contradictory
-        signals and limited corroboration prevent a high-confidence assessment.
+        {explanation}
       </p>
+
     </section>
   );
 }
+
+
+/*
+ * ---------------------------------------------------------
+ * Main Hypothesis Page
+ * ---------------------------------------------------------
+ */
 
 export default async function HypothesisPage({
   params,
@@ -93,185 +313,439 @@ export default async function HypothesisPage({
 }) {
   const { id } = await params;
 
-  return (
-    <div className="hypothesis-page">
-      {/* Breadcrumb */}
-      <div className="page-breadcrumb">
-        <Link href="/dashboard">Dashboard</Link>
-        <span>/</span>
-        <span>Hypotheses</span>
-        <span>/</span>
-        <strong>{id}</strong>
-      </div>
+  let data: HypothesisResponse;
 
-      {/* Header */}
-      <header className="hypothesis-header">
-        <div>
-          <div className="hypothesis-title-row">
-            <span className="hypothesis-id">{id}</span>
+  try {
+    const response = await fetch(
+      `${API_URL}/api/hypotheses/${id}`,
+      {
+        cache: "no-store",
+      }
+    );
 
-            <span className="confidence-band medium">MEDIUM</span>
-          </div>
+    if (!response.ok) {
+      throw new Error(
+        `Hypothesis API returned ${response.status}`
+      );
+    }
 
-          <h1>ShadowX ↔ ShadowNova</h1>
+    data =
+      (await response.json()) as HypothesisResponse;
 
-          <p>
-            Possible Persona Link
-            <span className="hypothesis-dot">•</span>
-            Synthetic Dataset
-          </p>
+  } catch (error) {
+    console.error(
+      "DARKTRACE Hypothesis API error:",
+      error
+    );
+
+    return (
+      <div className="hypothesis-page">
+
+        <div className="page-breadcrumb">
+          <Link href="/dashboard">
+            Dashboard
+          </Link>
+
+          <span>/</span>
+
+          <span>Hypotheses</span>
+
+          <span>/</span>
+
+          <strong>{id}</strong>
         </div>
 
+        <section className="hypothesis-section">
+
+          <h2>
+            Unable to load hypothesis
+          </h2>
+
+          <p>
+            The DARKTRACE analytical backend could not
+            be reached. Make sure FastAPI is running on
+            port 8000.
+          </p>
+
+        </section>
+
+      </div>
+    );
+  }
+
+  const {
+    hypothesis,
+    analysis,
+  } = data;
+
+  const supporting =
+    analysis.supporting_evidence || [];
+
+  const contradictory =
+    analysis.contradictory_evidence || [];
+
+  const confidenceClass =
+    analysis.confidence.toLowerCase();
+
+  return (
+    <div className="hypothesis-page">
+
+      {/* -------------------------------------------------
+          Breadcrumb
+      ------------------------------------------------- */}
+
+      <div className="page-breadcrumb">
+
+        <Link href="/dashboard">
+          Dashboard
+        </Link>
+
+        <span>/</span>
+
+        <span>Hypotheses</span>
+
+        <span>/</span>
+
+        <strong>
+          {hypothesis.id}
+        </strong>
+
+      </div>
+
+
+      {/* -------------------------------------------------
+          Header
+      ------------------------------------------------- */}
+
+      <header className="hypothesis-header">
+
+        <div>
+
+          <div className="hypothesis-title-row">
+
+            <span className="hypothesis-id">
+              {hypothesis.id}
+            </span>
+
+            <span
+              className={`confidence-band ${confidenceClass}`}
+            >
+              {analysis.confidence}
+            </span>
+
+          </div>
+
+          <h1>
+            {hypothesis.title}
+          </h1>
+
+          <p>
+
+            Possible Persona Link
+
+            <span className="hypothesis-dot">
+              •
+            </span>
+
+            Synthetic Dataset
+
+          </p>
+
+        </div>
+
+
         <div className="hypothesis-actions">
+
           <Link
-            href="/personas/P-001"
+            href={`/personas/${hypothesis.persona_a}`}
             className="secondary-action"
           >
             View Persona
           </Link>
 
           <Link
-            href="/personas/P-001"
+            href={`/personas/${hypothesis.persona_a}`}
             className="primary-action"
           >
             View Relationship Graph
           </Link>
+
         </div>
+
       </header>
 
-      {/* Important analytical note */}
+
+      {/* -------------------------------------------------
+          Analytical Note
+      ------------------------------------------------- */}
+
       <div className="analytical-note">
-        <strong>Analytical note:</strong>
+
+        <strong>
+          Analytical note:
+        </strong>
 
         <span>
-          This is an evidence-backed attribution hypothesis, not a
-          determination of real-world identity. Similarity alone does not
-          establish common ownership.
+          {analysis.analytical_note}
         </span>
+
       </div>
 
-      {/* Confidence */}
-      <ConfidenceCard />
 
-      {/* Explanation */}
+      {/* -------------------------------------------------
+          Confidence
+      ------------------------------------------------- */}
+
+      <ConfidenceCard
+        confidence={analysis.confidence}
+        explanation={analysis.explanation}
+      />
+
+
+      {/* -------------------------------------------------
+          Explanation
+      ------------------------------------------------- */}
+
       <section className="hypothesis-explanation">
-        <div>
-          <p className="section-eyebrow">WHY THIS HYPOTHESIS EXISTS</p>
 
-          <h2>Evidence points in both directions</h2>
+        <div>
+
+          <p className="section-eyebrow">
+            WHY THIS HYPOTHESIS EXISTS
+          </p>
+
+          <h2>
+            Evidence points in both directions
+          </h2>
+
         </div>
+
 
         <div className="explanation-grid">
+
           <div className="explanation-column supporting">
-            <span>SUPPORTING SIGNALS</span>
+
+            <span>
+              SUPPORTING SIGNALS
+            </span>
 
             <p>
-              Shared PGP, behavioural similarity, semantic writing
-              similarity and activity overlap increase the hypothesis
-              strength.
+              {supporting.length} supporting
+              evidence signal
+              {supporting.length === 1
+                ? ""
+                : "s"} contribute to the
+              hypothesis.
             </p>
+
           </div>
+
 
           <div className="explanation-column contradictory">
-            <span>CONTRADICTORY SIGNALS</span>
+
+            <span>
+              CONTRADICTORY SIGNALS
+            </span>
 
             <p>
-              Different infrastructure, a temporal gap and limited
-              independent corroboration reduce confidence.
+              {contradictory.length} contradictory
+              evidence signal
+              {contradictory.length === 1
+                ? ""
+                : "s"} weaken the
+              hypothesis.
             </p>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* Evidence */}
+
+      {/* -------------------------------------------------
+          Supporting Evidence
+      ------------------------------------------------- */}
+
       <section className="hypothesis-section">
+
         <div className="section-heading-row">
+
           <div>
-            <p className="section-eyebrow">SUPPORTING EVIDENCE</p>
-            <h2>Signals strengthening the hypothesis</h2>
+
+            <p className="section-eyebrow">
+              SUPPORTING EVIDENCE
+            </p>
+
+            <h2>
+              Signals strengthening the hypothesis
+            </h2>
+
           </div>
 
-          <span className="section-count">4 signals</span>
+          <span className="section-count">
+            {supporting.length}{" "}
+            {supporting.length === 1
+              ? "signal"
+              : "signals"}
+          </span>
+
         </div>
+
 
         <div className="evidence-grid">
-          <EvidenceCard
-            title="Shared PGP"
-            type="IDENTITY"
-            description="Both personas are associated with PGP-A."
-            strength="STRONG"
-            source="SRC-A"
-          />
 
-          <EvidenceCard
-            title="Behavioural Similarity"
-            type="BEHAVIOURAL"
-            description="Observed activity patterns show meaningful behavioural overlap."
-            strength="MODERATE"
-            source="SRC-C"
-          />
+          {supporting.map(
+            (evidence) => (
+              <EvidenceCard
+                key={evidence.id}
+                evidence={evidence}
+              />
+            )
+          )}
 
-          <EvidenceCard
-            title="Semantic Writing Similarity"
-            type="LINGUISTIC"
-            description="Writing samples show semantic similarities across observed communications."
-            strength="MODERATE"
-            source="SRC-D"
-          />
-
-          <EvidenceCard
-            title="Activity Overlap"
-            type="TEMPORAL"
-            description="Several activity windows overlap within the observed timeline."
-            strength="MODERATE"
-            source="SRC-E"
-          />
         </div>
+
       </section>
 
-      {/* Contradictions */}
+
+      {/* -------------------------------------------------
+          Contradictory Evidence
+      ------------------------------------------------- */}
+
       <section className="hypothesis-section">
+
         <div className="section-heading-row">
+
           <div>
-            <p className="section-eyebrow">CONTRADICTORY EVIDENCE</p>
-            <h2>Signals weakening the hypothesis</h2>
+
+            <p className="section-eyebrow">
+              CONTRADICTORY EVIDENCE
+            </p>
+
+            <h2>
+              Signals weakening the hypothesis
+            </h2>
+
           </div>
 
           <span className="section-count contradiction-count">
-            2 signals
+
+            {contradictory.length}{" "}
+            {contradictory.length === 1
+              ? "signal"
+              : "signals"}
+
           </span>
+
         </div>
+
 
         <div className="evidence-grid">
-          <ContradictionCard
-            title="Infrastructure Mismatch"
-            description="The personas are associated with different infrastructure nodes."
-            severity="MEDIUM"
-            source="SRC-F"
-          />
 
-          <ContradictionCard
-            title="Temporal Gap"
-            description="Observed activity contains a period where the expected continuity is not present."
-            severity="MEDIUM"
-            source="SRC-G"
-          />
+          {contradictory.map(
+            (evidence) => (
+              <ContradictionCard
+                key={evidence.id}
+                evidence={evidence}
+              />
+            )
+          )}
+
         </div>
+
       </section>
 
-      {/* Investigation */}
+
+      {/* -------------------------------------------------
+          Investigation Guidance
+      ------------------------------------------------- */}
+
       <section className="hypothesis-section">
+
         <div className="section-heading-row">
+
           <div>
-            <p className="section-eyebrow">INVESTIGATION GUIDANCE</p>
-            <h2>What should be investigated next?</h2>
+
+            <p className="section-eyebrow">
+              INVESTIGATION GUIDANCE
+            </p>
+
+            <h2>
+              What should be investigated next?
+            </h2>
+
           </div>
+
         </div>
 
-        <InvestigationGap />
 
-        <NextBestEvidence />
+        <InvestigationGap
+          text={analysis.investigation_gap}
+        />
+
+
+        <NextBestEvidence
+          text={analysis.next_best_evidence}
+        />
+
       </section>
+
+
+      {/* -------------------------------------------------
+          Analytical Scores
+      ------------------------------------------------- */}
+
+      <section className="hypothesis-section">
+
+        <div className="section-heading-row">
+
+          <div>
+
+            <p className="section-eyebrow">
+              ANALYTICAL SIGNAL
+            </p>
+
+            <h2>
+              Evidence balance
+            </h2>
+
+          </div>
+
+        </div>
+
+
+        <div className="explanation-grid">
+
+          <div className="explanation-column supporting">
+
+            <span>
+              SUPPORTING SCORE
+            </span>
+
+            <p>
+              {analysis.supporting_score.toFixed(4)}
+            </p>
+
+          </div>
+
+
+          <div className="explanation-column contradictory">
+
+            <span>
+              CONTRADICTORY SCORE
+            </span>
+
+            <p>
+              {analysis.contradictory_score.toFixed(4)}
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
     </div>
   );
 }

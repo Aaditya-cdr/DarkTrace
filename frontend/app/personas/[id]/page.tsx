@@ -2,16 +2,135 @@ import Link from "next/link";
 import AppShell from "@/components/layout/app-shell";
 import RelationshipGraph from "@/components/graph/relationship-graph";
 
-interface PersonaPageProps {
-  params: Promise<{
-    id: string;
-  }>;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+interface Persona {
+  id: string;
+  handle: string;
+  status: string;
+  pgp: string;
+  wallet: string;
+  infrastructure: string;
+  writing_sample: string;
+  activity_start: string;
+  activity_end: string;
+}
+
+interface Hypothesis {
+  id: string;
+  persona_a: string;
+  persona_b: string;
+  title: string;
+  assessment: string;
+  evidence_ids: string[];
+  investigation_status: string;
+}
+
+interface HypothesisAnalysis {
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+}
+
+interface HypothesisResponse {
+  hypothesis: Hypothesis;
+  analysis: HypothesisAnalysis;
 }
 
 export default async function PersonaPage({
   params,
-}: PersonaPageProps) {
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
+
+  let persona: Persona | null = null;
+  let hypotheses: HypothesisResponse[] = [];
+  let error = false;
+
+  try {
+    const [personaResponse, hypothesesResponse] = await Promise.all([
+      fetch(`${API_URL}/api/personas/${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      }),
+      fetch(`${API_URL}/api/hypotheses`, {
+        cache: "no-store",
+      }),
+    ]);
+
+    if (personaResponse.ok) {
+      persona = await personaResponse.json();
+    }
+
+    if (hypothesesResponse.ok) {
+      const data = await hypothesesResponse.json();
+
+      const allHypotheses: Hypothesis[] = data.items || [];
+
+      const related = allHypotheses.filter(
+        (hypothesis) =>
+          hypothesis.persona_a.toLowerCase() === id.toLowerCase() ||
+          hypothesis.persona_b.toLowerCase() === id.toLowerCase(),
+      );
+
+      hypotheses = await Promise.all(
+        related.map(async (hypothesis) => {
+          const response = await fetch(
+            `${API_URL}/api/hypotheses/${encodeURIComponent(hypothesis.id)}`,
+            { cache: "no-store" },
+          );
+
+          if (!response.ok) {
+            return {
+              hypothesis,
+              analysis: {
+                confidence: "LOW" as const,
+              },
+            };
+          }
+
+          return response.json();
+        }),
+      );
+    }
+  } catch {
+    error = true;
+  }
+
+  if (!persona) {
+    return (
+      <AppShell>
+        <div className="page-container persona-page">
+          <div className="persona-breadcrumb">
+            <Link href="/dashboard">Dashboard</Link>
+            <span> / </span>
+            <Link href="/personas">Personas</Link>
+          </div>
+
+          <div className="dashboard-panel">
+            <div className="panel-header">
+              <div>
+                <div className="eyebrow">PERSONA PROFILE</div>
+                <h1>
+                  {error ? "Unable to load persona" : "Persona not found"}
+                </h1>
+                <p>
+                  {error
+                    ? "The DARKTRACE intelligence API could not be reached."
+                    : "The requested persona does not exist in the current synthetic dataset."}
+                </p>
+              </div>
+            </div>
+
+            <Link href="/dashboard" className="secondary-button">
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  const relatedHypotheses = hypotheses;
 
   return (
     <AppShell>
@@ -19,55 +138,63 @@ export default async function PersonaPage({
         <div className="persona-breadcrumb">
           <Link href="/personas">Personas</Link>
           <span> / </span>
-          <span>ShadowX</span>
+          <span>{persona.handle}</span>
         </div>
 
+        {/* HEADER */}
         <div className="persona-header">
           <div>
-            <div className="eyebrow">
-              PERSONA PROFILE
-            </div>
+            <div className="eyebrow">PERSONA PROFILE</div>
 
             <div className="persona-title-row">
-              <h1>ShadowX</h1>
+              <h1>{persona.handle}</h1>
 
-              <span className="persona-id">
-                P-001
-              </span>
+              <span className="persona-id">{persona.id}</span>
 
               <span className="active-badge">
-                ACTIVE
+                {persona.status}
               </span>
             </div>
 
             <p>
-              Synthetic intelligence entity representing a
-              dark-web persona in the DARKTRACE demonstration dataset.
+              Synthetic intelligence entity representing a dark-web persona
+              in the DARKTRACE demonstration dataset.
             </p>
           </div>
 
           <div className="persona-actions">
-            <Link
-              href={`/hypotheses/H-001`}
-              className="secondary-button"
-            >
-              View Hypotheses
-            </Link>
+            {relatedHypotheses.length > 0 ? (
+              <Link
+                href={`/hypotheses/${relatedHypotheses[0].hypothesis.id}`}
+                className="secondary-button"
+              >
+                View Hypotheses
+              </Link>
+            ) : (
+              <Link
+                href="/hypotheses"
+                className="secondary-button"
+              >
+                View Hypotheses
+              </Link>
+            )}
 
-            <button className="primary-button">
+            <Link
+              href={`/reports/${persona.id}`}
+              className="primary-button"
+            >
               Generate Report
-            </button>
+            </Link>
           </div>
         </div>
 
+        {/* IDENTITY */}
         <section className="identity-grid">
           <div className="identity-card">
-            <span>HANDLES</span>
+            <span>HANDLE</span>
 
             <div className="identity-values">
-              <code>ShadowX</code>
-              <code>Shadow_X</code>
-              <code>ShadowTrader</code>
+              <code>{persona.handle}</code>
             </div>
           </div>
 
@@ -75,7 +202,7 @@ export default async function PersonaPage({
             <span>PGP</span>
 
             <div className="identity-values">
-              <code>PGP-A</code>
+              <code>{persona.pgp}</code>
             </div>
           </div>
 
@@ -83,7 +210,7 @@ export default async function PersonaPage({
             <span>WALLET</span>
 
             <div className="identity-values">
-              <code>WALLET-A</code>
+              <code>{persona.wallet}</code>
             </div>
           </div>
 
@@ -91,104 +218,119 @@ export default async function PersonaPage({
             <span>INFRASTRUCTURE</span>
 
             <div className="identity-values">
-              <code>INFRA-01</code>
+              <code>{persona.infrastructure}</code>
             </div>
           </div>
         </section>
 
+        {/* RELATIONSHIP GRAPH */}
         <section className="persona-section">
           <div className="section-heading">
             <div>
               <h2>Relationship Overview</h2>
 
               <p>
-                Connected entities and possible relationships
-                surrounding this persona.
+                Connected entities and possible relationships surrounding this
+                persona.
               </p>
             </div>
 
             <span className="section-meta">
-              7 entities
+              {relatedHypotheses.length} hypothesis
+              {relatedHypotheses.length !== 1 ? "es" : ""}
             </span>
           </div>
 
           <RelationshipGraph />
         </section>
 
+        {/* BOTTOM GRID */}
         <section className="persona-bottom-grid">
+          {/* TIMELINE */}
           <div className="dashboard-panel">
             <div className="panel-header">
               <div>
                 <h2>Timeline</h2>
-                <p>Recent observed activity</p>
+                <p>Observed activity window</p>
               </div>
             </div>
 
             <div className="mini-timeline">
               <div>
-                <span>JAN 08</span>
-                <p>ShadowX appears with PGP-A</p>
+                <span>START</span>
+                <p>
+                  Activity observed from {persona.activity_start}
+                </p>
               </div>
 
               <div>
-                <span>JAN 17</span>
-                <p>WALLET-A observed</p>
+                <span>IDENTITY</span>
+                <p>
+                  {persona.handle} associated with {persona.pgp}
+                </p>
               </div>
 
               <div>
-                <span>FEB 19</span>
-                <p>Infrastructure activity observed</p>
+                <span>END</span>
+                <p>
+                  Activity observed through {persona.activity_end}
+                </p>
               </div>
 
-              <Link href={`/personas/${id}/timeline`}>
+              <Link href="/timeline">
                 View full timeline →
               </Link>
             </div>
           </div>
 
+          {/* RELATED HYPOTHESES */}
           <div className="dashboard-panel">
             <div className="panel-header">
               <div>
                 <h2>Related Hypotheses</h2>
-                <p>Analytical relationships involving ShadowX</p>
+
+                <p>
+                  Analytical relationships involving {persona.handle}
+                </p>
               </div>
             </div>
 
-            <div className="related-hypothesis">
-              <div>
-                <code>H-001</code>
+            {relatedHypotheses.length === 0 ? (
+              <div className="related-hypothesis">
+                <div>
+                  <strong>No related hypotheses</strong>
 
-                <strong>
-                  ShadowX ↔ ShadowNova
-                </strong>
-
-                <span>
-                  Possible Persona Link
-                </span>
+                  <span>
+                    No analytical relationship is currently linked to this
+                    persona.
+                  </span>
+                </div>
               </div>
+            ) : (
+              relatedHypotheses.map(({ hypothesis, analysis }) => (
+                <Link
+                  key={hypothesis.id}
+                  href={`/hypotheses/${hypothesis.id}`}
+                  className="related-hypothesis"
+                >
+                  <div>
+                    <code>{hypothesis.id}</code>
 
-              <span className="confidence-badge medium">
-                MEDIUM
-              </span>
-            </div>
+                    <strong>{hypothesis.title}</strong>
 
-            <div className="related-hypothesis">
-              <div>
-                <code>H-005</code>
+                    <span>
+                      Possible Persona Link
+                    </span>
+                  </div>
 
-                <strong>
-                  ShadowX ↔ GhostMarket
-                </strong>
-
-                <span>
-                  Possible Association
-                </span>
-              </div>
-
-              <span className="confidence-badge low">
-                LOW
-              </span>
-            </div>
+                  <span
+                    className={`confidence-badge ${analysis.confidence.toLowerCase()}`}
+                  >
+                    {analysis.confidence}
+                  </span>
+                </Link>
+              ))
+            )}
           </div>
         </section>
       </div>

@@ -1,0 +1,106 @@
+[
+  {
+    "id": "P-001",
+    "handle": "ShadowX",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-A"],
+    "wallet_ids": ["WALLET-A"],
+    "infrastructure_ids": ["INFRA-01"],
+    "writing_sample_id": "WRITING-A",
+    "activity_window": {
+      "start": "2026-08-01",
+      "end": "2026-08-20"
+    }
+  },
+  {
+    "id": "P-002",
+    "handle": "ShadowNova",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-A"],
+    "wallet_ids": ["WALLET-B"],
+    "infrastructure_ids": ["INFRA-02"],
+    "writing_sample_id": "WRITING-B",
+    "activity_window": {
+      "start": "2026-08-10",
+      "end": "2026-08-25"
+    }
+  },
+  {
+    "id": "P-003",
+    "handle": "CipherWolf",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-D"],
+    "wallet_ids": ["WALLET-D"],
+    "infrastructure_ids": ["INFRA-04"],
+    "writing_sample_id": "WRITING-D",
+    "activity_window": {
+      "start": "2026-08-01",
+      "end": "2026-08-28"
+    }
+  },
+  {
+    "id": "P-004",
+    "handle": "NullShade",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-D"],
+    "wallet_ids": ["WALLET-H"],
+    "infrastructure_ids": ["INFRA-04"],
+    "writing_sample_id": "WRITING-H",
+    "activity_window": {
+      "start": "2026-08-05",
+      "end": "2026-08-30"
+    }
+  },
+  {
+    "id": "P-005",
+    "handle": "NightFox",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-C"],
+    "wallet_ids": ["WALLET-C"],
+    "infrastructure_ids": ["INFRA-03"],
+    "writing_sample_id": "WRITING-C",
+    "activity_window": {
+      "start": "2026-08-03",
+      "end": "2026-08-12"
+    }
+  },
+  {
+    "id": "P-006",
+    "handle": "RedVector",
+    "status": "ACTIVE",
+    "pgp_ids": ["PGP-G"],
+    "wallet_ids": ["WALLET-G"],
+    "infrastructure_ids": ["INFRA-07"],
+    "writing_sample_id": "WRITING-G",
+    "activity_window": {
+      "start": "2026-08-15",
+      "end": "2026-08-24"
+    }
+  },
+  {
+    "id": "P-007",
+    "handle": "GhostMarket",
+    "status": "INACTIVE",
+    "pgp_ids": ["PGP-X"],
+    "wallet_ids": ["WALLET-X"],
+    "infrastructure_ids": ["INFRA-09"],
+    "writing_sample_id": "WRITING-X",
+    "activity_window": {
+      "start": "2026-07-01",
+      "end": "2026-07-20"
+    }
+  },
+  {
+    "id": "P-008",
+    "handle": "BlackOak",
+    "status": "INACTIVE",
+    "pgp_ids": ["PGP-Y"],
+    "wallet_ids": ["WALLET-Y"],
+    "infrastructure_ids": ["INFRA-10"],
+    "writing_sample_id": "WRITING-Y",
+    "activity_window": {
+      "start": "2026-06-10",
+      "end": "2026-06-30"
+    }
+  }
+]

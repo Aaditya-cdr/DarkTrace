@@ -1,0 +1,45 @@
+[
+  {
+    "id": "H-001",
+    "status": "ACTIVE",
+    "persona_a": "P-001",
+    "persona_b": "P-002",
+    "title": "ShadowX ↔ ShadowNova",
+    "assessment": "POSSIBLE_LINK",
+    "evidence_ids": [
+      "E-001",
+      "E-002",
+      "E-003",
+      "E-004",
+      "E-005",
+      "E-006"
+    ],
+    "investigation_status": "OPEN"
+  },
+  {
+    "id": "H-002",
+    "status": "ACTIVE",
+    "persona_a": "P-003",
+    "persona_b": "P-004",
+    "title": "CipherWolf ↔ NullShade",
+    "assessment": "POSSIBLE_LINK",
+    "evidence_ids": [
+      "E-007",
+      "E-008"
+    ],
+    "investigation_status": "OPEN"
+  },
+  {
+    "id": "H-003",
+    "status": "ACTIVE",
+    "persona_a": "P-005",
+    "persona_b": "P-006",
+    "title": "NightFox ↔ RedVector",
+    "assessment": "POSSIBLE_LINK",
+    "evidence_ids": [
+      "E-009",
+      "E-010"
+    ],
+    "investigation_status": "OPEN"
+  }
+]
