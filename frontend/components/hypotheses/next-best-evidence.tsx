@@ -1,19 +1,23 @@
-export default function NextBestEvidence() {
+type NextBestEvidenceProps = {
+  nextBestEvidence: string;
+};
+
+export default function NextBestEvidence({
+  nextBestEvidence,
+}: NextBestEvidenceProps) {
   return (
     <section className="next-evidence-card">
       <div className="next-evidence-header">
         <div>
           <p className="section-eyebrow">NEXT-BEST EVIDENCE</p>
-          <h3>Independent identifier linking both personas</h3>
+          <h3>Recommended investigative direction</h3>
         </div>
 
         <span className="expected-value">HIGH VALUE</span>
       </div>
 
       <p>
-        Seek an independently sourced identifier linking ShadowX and
-        ShadowNova. This could materially strengthen or weaken the current
-        hypothesis depending on the result.
+        {nextBestEvidence}
       </p>
 
       <div className="next-evidence-footer">

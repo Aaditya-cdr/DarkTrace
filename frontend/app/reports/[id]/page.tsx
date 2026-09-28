@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import PrintButton from "@/components/reports/print-button";
 
 const API_URL =
@@ -107,18 +108,17 @@ export default async function ReportPreviewPage({
   let error = false;
 
   try {
-    const [hypothesisResponse, timelineResponse] =
-      await Promise.all([
-        fetch(
-          `${API_URL}/api/hypotheses/${encodeURIComponent(id)}`,
-          {
-            cache: "no-store",
-          },
-        ),
-        fetch(`${API_URL}/api/timeline`, {
+    const [hypothesisResponse, timelineResponse] = await Promise.all([
+      fetch(
+        `${API_URL}/api/hypotheses/${encodeURIComponent(id)}`,
+        {
           cache: "no-store",
-        }),
-      ]);
+        },
+      ),
+      fetch(`${API_URL}/api/timeline`, {
+        cache: "no-store",
+      }),
+    ]);
 
     if (!hypothesisResponse.ok) {
       throw new Error(
@@ -194,34 +194,6 @@ export default async function ReportPreviewPage({
       .sort((a, b) =>
         a.date.localeCompare(b.date),
       ) || [];
-
-  /*
-   * Use the analytical score as the report's numerical
-   * confidence indicator rather than inventing a percentage.
-   *
-   * Net score can be negative, so clamp the display to 0–100.
-   */
-  const numericalConfidence = Math.round(
-    Math.max(
-      0,
-      Math.min(1, 0.5 + analysis.net_score / 2),
-    ) * 100,
-  );
-
-  const dataConfidence = Math.round(
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (analysis.supporting_score +
-          analysis.contradictory_score) /
-          Math.max(
-            1,
-            supporting.length + contradictory.length,
-          ),
-      ),
-    ) * 100,
-  );
 
   return (
     <div className="report-preview-page">
@@ -315,24 +287,23 @@ export default async function ReportPreviewPage({
 
               <p>{analysis.explanation}</p>
 
-              <p>
-                {analysis.analytical_note}
-              </p>
+              <p>{analysis.analytical_note}</p>
             </div>
 
             <div className="report-confidence-box">
               <span>ANALYTICAL CONFIDENCE</span>
 
-              <strong>{numericalConfidence}</strong>
+              <strong>{analysis.confidence}</strong>
 
               <div
                 className={`report-confidence-band ${confidenceClass}`}
               >
-                {analysis.confidence}
+                Evidence-backed confidence band
               </div>
 
               <small>
-                Data Confidence: {dataConfidence}%
+                Net Evidence Score:{" "}
+                {analysis.net_score.toFixed(2)}
               </small>
             </div>
           </div>
@@ -398,24 +369,33 @@ export default async function ReportPreviewPage({
               <span>Source</span>
             </div>
 
-            {supporting.map((evidence) => (
-              <div
-                className="report-table-row"
-                key={evidence.id}
-              >
-                <strong>
-                  {getEvidenceTitle(evidence.type)}
-                </strong>
+            {supporting.length > 0 ? (
+              supporting.map((evidence) => (
+                <div
+                  className="report-table-row"
+                  key={evidence.id}
+                >
+                  <strong>
+                    {getEvidenceTitle(evidence.type)}
+                  </strong>
 
-                <span>{evidence.category}</span>
+                  <span>{evidence.category}</span>
 
-                <span className="report-positive">
-                  {evidence.strength}
-                </span>
+                  <span className="report-positive">
+                    {evidence.strength}
+                  </span>
 
-                <span>{evidence.source}</span>
+                  <span>{evidence.source}</span>
+                </div>
+              ))
+            ) : (
+              <div className="report-table-row">
+                <strong>No supporting evidence</strong>
+                <span>—</span>
+                <span>—</span>
+                <span>—</span>
               </div>
-            ))}
+            )}
           </div>
         </section>
 
@@ -441,24 +421,33 @@ export default async function ReportPreviewPage({
               <span>Source</span>
             </div>
 
-            {contradictory.map((evidence) => (
-              <div
-                className="report-table-row"
-                key={evidence.id}
-              >
-                <strong>
-                  {getEvidenceTitle(evidence.type)}
-                </strong>
+            {contradictory.length > 0 ? (
+              contradictory.map((evidence) => (
+                <div
+                  className="report-table-row"
+                  key={evidence.id}
+                >
+                  <strong>
+                    {getEvidenceTitle(evidence.type)}
+                  </strong>
 
-                <span>{evidence.category}</span>
+                  <span>{evidence.category}</span>
 
-                <span className="report-negative">
-                  {evidence.strength}
-                </span>
+                  <span className="report-negative">
+                    {evidence.strength}
+                  </span>
 
-                <span>{evidence.source}</span>
+                  <span>{evidence.source}</span>
+                </div>
+              ))
+            ) : (
+              <div className="report-table-row">
+                <strong>No contradictory evidence</strong>
+                <span>—</span>
+                <span>—</span>
+                <span>—</span>
               </div>
-            ))}
+            )}
           </div>
         </section>
 
@@ -482,9 +471,7 @@ export default async function ReportPreviewPage({
             <div>
               <span>INVESTIGATION PRIORITY</span>
 
-              <h3>
-                {analysis.investigation_gap}
-              </h3>
+              <h3>{analysis.investigation_gap}</h3>
 
               <p>
                 The current evidence set contains signals

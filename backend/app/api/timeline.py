@@ -25,22 +25,42 @@ def load_json(file_path: Path):
         return json.load(file)
 
 
-def build_entity_label(evidence: dict, personas: list[dict]) -> str:
-    subject_a = evidence.get("subject_a")
-    subject_b = evidence.get("subject_b")
+def build_entity_label(
+    evidence: dict,
+    personas: list[dict],
+) -> str:
+    entities = evidence.get("entities", [])
 
-    if subject_a and subject_b:
+    if len(entities) >= 2:
         persona_names = {
             persona["id"]: persona["handle"]
             for persona in personas
         }
 
-        name_a = persona_names.get(subject_a, subject_a)
-        name_b = persona_names.get(subject_b, subject_b)
+        name_a = persona_names.get(
+            entities[0],
+            entities[0],
+        )
+
+        name_b = persona_names.get(
+            entities[1],
+            entities[1],
+        )
 
         return f"{name_a} ↔ {name_b}"
 
-    return subject_a or "Unknown Entity"
+    if len(entities) == 1:
+        persona_names = {
+            persona["id"]: persona["handle"]
+            for persona in personas
+        }
+
+        return persona_names.get(
+            entities[0],
+            entities[0],
+        )
+
+    return "Unknown Entity"
 
 
 def get_event_title(evidence: dict) -> str:
@@ -57,41 +77,53 @@ def get_event_title(evidence: dict) -> str:
 
     return titles.get(
         evidence.get("type", ""),
-        evidence.get("type", "Evidence signal observed").replace("_", " ").title(),
+        evidence.get(
+            "type",
+            "Evidence signal observed",
+        ).replace("_", " ").title(),
     )
 
 
 def get_event_description(evidence: dict) -> str:
     descriptions = {
         "SHARED_PGP": (
-            "Both personas are associated with the same PGP identifier."
+            "Both personas are associated with the same "
+            "PGP identifier."
         ),
         "BEHAVIOURAL_SIMILARITY": (
-            "Observed activity patterns show meaningful behavioural overlap."
+            "Observed activity patterns show meaningful "
+            "behavioural overlap."
         ),
         "SEMANTIC_SIMILARITY": (
-            "Writing samples show semantic similarities across observed communications."
+            "Writing samples show semantic similarities "
+            "across observed communications."
         ),
         "ACTIVITY_OVERLAP": (
-            "Several activity windows overlap within the observed period."
+            "Several activity windows overlap within "
+            "the observed period."
         ),
         "INFRASTRUCTURE_MISMATCH": (
-            "The personas are associated with different infrastructure nodes."
+            "The personas are associated with different "
+            "infrastructure nodes."
         ),
         "TEMPORAL_GAP": (
-            "A period of expected continuity is not observed between the activity sequences."
+            "A period of expected continuity is not observed "
+            "between the activity sequences."
         ),
         "INFRASTRUCTURE_CONTINUITY": (
-            "The personas share a consistent infrastructure relationship across the observed records."
+            "The personas share a consistent infrastructure "
+            "relationship across the observed records."
         ),
         "IDENTIFIER_CONFLICT": (
-            "Observed identifiers conflict with the proposed relationship."
+            "Observed identifiers conflict with the "
+            "proposed relationship."
         ),
     }
 
     return descriptions.get(
         evidence.get("type", ""),
-        "Evidence signal identified in the synthetic investigation dataset.",
+        "Evidence signal identified in the "
+        "synthetic investigation dataset.",
     )
 
 
@@ -103,19 +135,35 @@ def get_timeline():
     events = []
 
     for item in evidence:
-        date = item.get("date", "")
+        # Evidence records use `observed_at` as the
+        # authoritative observation date.
+        observed_at = item.get("observed_at", "")
 
         events.append(
             {
                 "id": item["id"],
-                "date": date,
+                "date": observed_at,
                 "time": "--:--",
-                "entity": build_entity_label(item, personas),
-                "type": item.get("category", "OTHER"),
+                "entity": build_entity_label(
+                    item,
+                    personas,
+                ),
+                "type": item.get(
+                    "category",
+                    "OTHER",
+                ),
                 "title": get_event_title(item),
-                "description": get_event_description(item),
-                "direction": item.get("direction", "NEUTRAL"),
-                "source": item.get("source", "UNKNOWN"),
+                "description": get_event_description(
+                    item,
+                ),
+                "direction": item.get(
+                    "direction",
+                    "NEUTRAL",
+                ),
+                "source": item.get(
+                    "source",
+                    "UNKNOWN",
+                ),
             }
         )
 
